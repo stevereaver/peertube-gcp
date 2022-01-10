@@ -1,0 +1,53 @@
+steps:
+  - id: create-terraform-state-bucket
+    name: "gcr.io/google.com/cloudsdktool/cloud-sdk:slim"
+    entrypoint: "bash"
+    waitFor: ["-"]
+    args:
+      - "-c"
+      - |
+        export PROJECT_ID=${PROJECT_ID}
+        export ENV=${_ENV}
+        source config.sh
+        gsutil ls gs://$${PROJECT_ID}_$${TERRAFORM_STATE_BUCKET} || gsutil mb -p $${PROJECT_ID} gs://$${PROJECT_ID}_$${TERRAFORM_STATE_BUCKET}
+  - id: terraform-init
+    name: "hashicorp/terraform:latest"
+    entrypoint: "sh"
+    waitFor: ["create-terraform-state-bucket"]
+    args:
+      - "-c"
+      - |
+        export PROJECT_ID=${PROJECT_ID}
+        export ENV=${_ENV}
+        source config.sh
+        cd terraform
+        sed -i "s/BUCKET/$${PROJECT_ID}_$${TERRAFORM_STATE_BUCKET}/g" backend.tf
+        terraform init
+  - id: terraform-plan
+    name: "hashicorp/terraform:latest"
+    entrypoint: "sh"
+    waitFor: ["terraform-init"]
+    timeout: 1200s
+    args:
+      - "-c"
+      - |
+        export PROJECT_ID=${PROJECT_ID}
+        export ENV=${_ENV}
+        source config.sh
+        cd terraform        
+        sed -i "s/BUCKET/$${PROJECT_ID}_$${TERRAFORM_STATE_BUCKET}/g" backend.tf
+        terraform plan
+  - id: terraform-apply
+    name: "hashicorp/terraform:latest"
+    entrypoint: "sh"
+    waitFor: ["terraform-plan"]
+    timeout: 1200s
+    args:
+      - "-c"
+      - |
+        export PROJECT_ID=${PROJECT_ID}
+        export ENV=${_ENV}
+        source config.sh
+        cd terraform        
+        sed -i "s/BUCKET/$${PROJECT_ID}_$${TERRAFORM_STATE_BUCKET}/g" backend.tf
+        terraform apply -auto-approve
