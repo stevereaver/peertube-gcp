@@ -1,13 +1,9 @@
 #!/bin/bash
 #
-# Run this script against a fresh project. This script will install all
-# inrastructure required for the demo.
+# This script will build the VM Image needed to run peertube
+# It will be placed in the active project
 # Requires: gcloud
 #
-
-# ENV can be either, test,dev,stage,prod
-# Assuming we are deployig to a test project.
-ENV="test"
 
 for i in "gcloud"; do
   command -v "${i}" 2>&1 > /dev/null || { echo >&2 "${i} is not installed."; echo "${MESSAGE}"; exit 1; }
@@ -34,15 +30,15 @@ if [[ ! ${REPLY} =~ ^[Yy]$ ]]; then
   [[ "$0" = "${BASH_SOURCE}" ]] && exit 1 || return 1
 else
   # Enable Services
-  gcloud services enable secretmanager.googleapis.com
-  gcloud services enable serviceusage.googleapis.com
-  gcloud services enable cloudbuild.googleapis.com
-  gcloud services enable sourcerepo.googleapis.com
-  gcloud services enable cloudresourcemanager.googleapis.com
+gcloud services enable sourcerepo.googleapis.com
+gcloud services enable compute.googleapis.com
+gcloud services enable servicemanagement.googleapis.com
+gcloud services enable storage-api.googleapis.com
 
   # Set Permissions
   gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:$(gcloud projects describe ${PROJECT_ID} --format 'value(projectNumber)')@cloudbuild.gserviceaccount.com --role roles/owner
+  gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:$(gcloud projects describe ${PROJECT_ID} --format 'value(projectNumber)')@cloudbuild.gserviceaccount.com --role roles/compute.instanceAdmin
 
   # Submit Build
-  gcloud builds submit --config "cloudbuild.yaml" --substitutions=_ENV=$ENV --timeout=1200s
+  gcloud builds submit --config "image/cloudbuild.yaml" --timeout=1200s "image"
 fi
