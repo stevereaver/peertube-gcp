@@ -1,9 +1,7 @@
 # Project Constants
-export REGION="australia-southeast1"
-export LOCATION="australia-southeast1"
-export ZONE="australia-southeast1-a"
+export REGION="us-central1"
+export ZONE="us-central1-a"
 export TERRAFORM_STATE_BUCKET="terraform-state"
-
 
 # VM Image Constants
 export VM_IMAGE_NAME="peertube-vm-image"
@@ -31,6 +29,11 @@ export TF_VAR_vm_image_source_url="${VM_IMAGE_SOURCE_URL}"
 export TF_VAR_vm_image_source_tag="${VM_IMAGE_SOURCE_TAG}"
 export TF_VAR_vm_image_source_type="${VM_IMAGE_SOURCE_TYPE}"
 
+# Packer Mappings
+export PKR_VAR_project_id="${PROJECT_ID}"
+export PKR_VAR_region="${REGION}"
+export PKR_VAR_location="${LOCATION}"
+export PKR_VAR_zone="${ZONE}"
 
 
 
